@@ -1,6 +1,12 @@
 function resolve() {
 
-    const baseUrl = 'http://localhost:3030/jsonstore/phonebook';
+    const getElements = {
+        baseUrl: 'http://localhost:3030/jsonstore/phonebook',
+        phonebook: document.getElementById('phonebook'),
+
+        personField: document.getElementById('person'),
+        phoneField: document.getElementById('phone'),
+    }
 
     function attachEvents() {
 
@@ -12,21 +18,21 @@ function resolve() {
 
     async function loadFn() {
 
-        const phonebook = document.getElementById('phonebook');
+        getElements.phonebook.innerHTML = '';
 
-        const response = await fetch(baseUrl, { method: 'GET' });
-        const data = await response.json();
+        const loadRes = await fetch(getElements.baseUrl, { method: 'GET' });
+        const loadData = await loadRes.json();
 
-        Object.values(data).forEach(line => {
+        Object.values(loadData).forEach(line => {
             const newLi = document.createElement('li');
             const btnDelete = document.createElement('button');
-            // btnDelete.setAttribute('id', 'btnDelete');
+            btnDelete.setAttribute('id', line._id);
             btnDelete.innerText = 'Delete';
 
-            newLi.textContent = `${line.person}:${line.phone}`;
+            newLi.textContent = `${line.person}: ${line.phone}`;
             newLi.appendChild(btnDelete);
 
-            phonebook.appendChild(newLi);
+            getElements.phonebook.appendChild(newLi);
 
             btnDelete.addEventListener('click', deleteFn);
         });
@@ -34,13 +40,10 @@ function resolve() {
 
     async function createFn() {
 
-        const personField = document.getElementById('person');
-        const phoneField = document.getElementById('phone');
+        const person = getElements.personField.value;
+        const phone = getElements.phoneField.value;
 
-        const person = personField.value;
-        const phone = phoneField.value;
-
-        const response = await fetch(baseUrl, {
+        const createRes = await fetch(getElements.baseUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -51,30 +54,29 @@ function resolve() {
             }),
         });
 
-        const data = await response.json();
-        key = data._id;
+        const createData = await createRes.json();
 
-        personField.value = '';
-        phoneField.value = '';
+        getElements.personField.value = '';
+        getElements.phoneField.value = '';
 
+        getElements.phonebook.innerHTML = '';
         loadFn();
-        return data
+        return createData
 
     }
-
-    let key;
 
     async function deleteFn() {
+        const key = this.getAttribute('id');
         const deleteUrl = `http://localhost:3030/jsonstore/phonebook/${key}`;
 
-        const response = await fetch(deleteUrl, { 
-            method: 'DELETE' ,
-            headers: { 'Content-Type': 'application/json'},
+        const deleteResponse = await fetch(deleteUrl, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
         });
-        const data = await response.json();
-        console.log(data);
-        return data;
+        const deleteData = await deleteResponse.json();
+
+        loadFn();
+        return deleteData;
     }
 }
-
 resolve();
