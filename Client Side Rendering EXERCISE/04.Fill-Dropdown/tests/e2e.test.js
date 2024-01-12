@@ -1,10 +1,10 @@
-const { chromium } = require('playwright-chromium');
-const { expect } = require('chai');
+import { chromium } from '../node_modules/playwright-chromium/index.mjs';
+import { expect } from '../node_modules/chai/chai.js';
 
 const host = 'http://localhost:3000'; // Application host (NOT service host - that can be anything)
 
 const DEBUG = false;
-const slowMo = 500;
+const slowMo = 50000;
 
 const mockData = {
   catalog: [
