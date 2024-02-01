@@ -1,4 +1,24 @@
-import { html } from "../../node_modules/lit-html/lit-html.js";
+import { html, nothing } from "../../node_modules/lit-html/lit-html.js";
+
+import { get } from "../api/api.js";
+import { teamDetails } from "./team-details.js";
+
+const teamsData = await get('/data/teams');
+const members = await get('/data/members?where=status%3D%22member%22');
+
+const teams = {};
+
+members.forEach((member) => {
+
+    const id = member.teamId;
+   
+    if (!teams[id]) {
+        teams[id] = 1;
+    } else {
+        teams[id] += 1;
+    }
+
+});
 
 export const browseTeamTemp = (user) => html`
 <section id="browse">
@@ -7,43 +27,29 @@ export const browseTeamTemp = (user) => html`
     <h1>Team Browser</h1>
 </article>
 
-${user 
-? html`
+${user
+        ? html`
 <article class="layout narrow">
-    <div class="pad-small"><a href="#" class="action cta">Create Team</a></div>
+    <div class="pad-small"><a href="/create" class="action cta">Create Team</a></div>
 </article>`
-: null
-}
+        : nothing
+    }
 
+${teamsData.map((team) => html`
 <article class="layout">
-    <img src="./assets/atat.png" class="team-logo left-col">
+    <img src=${team.logoUrl} class="team-logo left-col">
     <div class="tm-preview">
-        <h2>Storm Troopers</h2>
-        <p>These ARE the droids we're looking for</p>
-        <span class="details">5000 Members</span>
-        <div><a href="#" class="action">See details</a></div>
+        <h2>${team.name}</h2>
+        <p>${team.description}</p>
+        <span class="details">${teams[team._id]} Members</span>
+        <div><a href="/details" class="action" id=${team._id} @click=${teamDetails()}>See details</a></div>
     </div>
-</article>
+</article>`)}
 
-<article class="layout">
-    <img src="./assets/rocket.png" class="team-logo left-col">
-    <div class="tm-preview">
-        <h2>Team Rocket</h2>
-        <p>Gotta catch 'em all!</p>
-        <span class="details">3 Members</span>
-        <div><a href="#" class="action">See details</a></div>
-    </div>
-</article>
-
-<article class="layout">
-    <img src="./assets/hydrant.png" class="team-logo left-col">
-    <div class="tm-preview">
-        <h2>Minions</h2>
-        <p>Friendly neighbourhood jelly beans, helping evil-doers succeed.</p>
-        <span class="details">150 Members</span>
-        <div><a href="#" class="action">See details</a></div>
-    </div>
-</article>
 
 </section>`;
 
+export function browse(ctx) {
+    ctx.render(browseTeamTemp(ctx.user));
+
+}
